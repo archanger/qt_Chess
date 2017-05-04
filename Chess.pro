@@ -24,8 +24,14 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 
 SOURCES += main.cpp\
-        mainwindow.cpp
+        mainwindow.cpp \
+    chessboard.cpp \
+    chessalgorithm.cpp \
+    chessview.cpp
 
-HEADERS  += mainwindow.hpp
+HEADERS  += mainwindow.hpp \
+    chessboard.hpp \
+    chessalgorithm.hpp \
+    chessview.hpp
 
 FORMS    += mainwindow.ui
