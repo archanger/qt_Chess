@@ -7,6 +7,9 @@ namespace Ui {
   class MainWindow;
 }
 
+class ChessView;
+class ChessAlgorithm;
+
 class MainWindow : public QMainWindow
 {
   Q_OBJECT
@@ -17,6 +20,8 @@ public:
 
 private:
   Ui::MainWindow *ui;
+  ChessView* _view;
+  ChessAlgorithm* _algorithm;
 };
 
 #endif // MAINWINDOW_HPP

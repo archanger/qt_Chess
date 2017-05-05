@@ -11,6 +11,9 @@ ChessAlgorithm::ChessAlgorithm(QObject *parent) :
 void ChessAlgorithm::newGame()
 {
   setupBoard();
+  board()->setFen(
+        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
+  );
 }
 
 void ChessAlgorithm::setupBoard()

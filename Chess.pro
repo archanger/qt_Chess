@@ -35,3 +35,6 @@ HEADERS  += mainwindow.hpp \
     chessview.hpp
 
 FORMS    += mainwindow.ui
+
+RESOURCES += \
+    resources.qrc
