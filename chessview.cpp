@@ -2,6 +2,7 @@
 #include "chessboard.hpp"
 
 #include <QPainter>
+#include <QMouseEvent>
 
 ChessView::ChessView(QWidget *parent) :
   QWidget{parent}
@@ -20,6 +21,10 @@ void ChessView::setBoard(ChessBoard* board)
   }
 
   _board = board;
+  if (board) {
+    connect(board, &ChessBoard::dataChanged, this, static_cast<void(ChessView::*)()>(&ChessView::update));
+    connect(board, &ChessBoard::boardReset, this, static_cast<void(ChessView::*)()>(&ChessView::update));
+  }
   updateGeometry();
 }
 
@@ -52,6 +57,35 @@ void ChessView::setPiece(char type, const QIcon& icon)
 QIcon ChessView::piece(char type) const
 {
   return _pieces.value(type, QIcon{});
+}
+
+QPoint ChessView::fieldAt(const QPoint& pt) const
+{
+  if (!_board)
+    return QPoint{};
+
+  const QSize fs = fieldSize();
+  int offset = fontMetrics().width('M') + 4;
+  if (pt.x() < offset)
+    return QPoint{};
+  int c = (pt.x()-offset) / fs.width();
+  int r = pt.y() / fs.height();
+  if (c < 0 || c >= _board->columns() || r < 0 || r >= _board->ranks())
+    return QPoint{};
+
+  return QPoint{c+1, _board->ranks() - r};
+}
+
+void ChessView::addHighlight(ChessView::Highlight* hi)
+{
+  _highlights.append(hi);
+  update();
+}
+
+void ChessView::removeHighlight(ChessView::Highlight* hi)
+{
+  _highlights.removeOne(hi);
+  update();
 }
 
 
@@ -107,6 +141,18 @@ void ChessView::drawPiece(QPainter* painter, int column, int rank)
   }
 }
 
+void ChessView::drawHighlights(QPainter* painter)
+{
+  for (int idx = 0; idx < highlightCount(); ++idx) {
+    Highlight* hi = highlight(idx);
+    if (hi->type() == FieldHighlight::Type) {
+      FieldHighlight* fhi = static_cast<FieldHighlight*>(hi);
+      QRect rect = fieldRect(fhi->column(), fhi->rank());
+      painter->fillRect(rect, fhi->color());
+    }
+  }
+}
+
 QRect ChessView::fieldRect(int column, int rank) const
 {
   if (!_board)
@@ -150,6 +196,8 @@ void ChessView::paintEvent(QPaintEvent* event)
     }
   }
 
+  drawHighlights(&painter);
+
   for (int r = _board->ranks(); r > 0; --r) {
     for (int c = 1; c <= _board->columns(); ++c) {
       drawPiece(&painter, c, r);
@@ -157,3 +205,12 @@ void ChessView::paintEvent(QPaintEvent* event)
   }
 }
 
+
+
+void ChessView::mouseReleaseEvent(QMouseEvent* event)
+{
+  QPoint pt = fieldAt(event->pos());
+  if(pt.isNull())
+    return;
+  emit clicked(pt);
+}

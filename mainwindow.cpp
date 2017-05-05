@@ -3,6 +3,7 @@
 
 #include "chessalgorithm.hpp"
 #include "chessview.hpp"
+#include "chessboard.hpp"
 
 #include <QLayout>
 
@@ -11,7 +12,8 @@ void _fillView(ChessView& view);
 MainWindow::MainWindow(QWidget *parent) :
   QMainWindow(parent),
   ui{new Ui::MainWindow},
-  _view{new ChessView}
+  _view{new ChessView},
+  _selectedField{nullptr}
 {
   ui->setupUi(this);
 
@@ -24,11 +26,38 @@ MainWindow::MainWindow(QWidget *parent) :
   _view->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
   _view->setFieldSize(QSize{50,50});
   layout()->setSizeConstraint(QLayout::SetFixedSize);
+
+  connect(_view, &ChessView::clicked, this, &MainWindow::viewClicked);
 }
 
 MainWindow::~MainWindow()
 {
   delete ui;
+}
+
+void MainWindow::viewClicked(const QPoint& point)
+{
+  if (_clickedPoint.isNull()) {
+    if (_view->board()->data(point.x(), point.y()) != ' ') {
+      _clickedPoint = point;
+      _selectedField = new ChessView::FieldHighlight(point.x(), point.y(), QColor(255, 0, 0, 50));
+      _view->addHighlight(_selectedField);
+    }
+    _clickedPoint = point;
+  } else {
+    if (point != _clickedPoint) {
+      _view->board()->movePiece(
+            _clickedPoint.x(),
+            _clickedPoint.y(),
+            point.x(),
+            point.y()
+      );
+    }
+    _clickedPoint = QPoint{};
+    _view->removeHighlight(_selectedField);
+    delete _selectedField;
+    _selectedField = nullptr;
+  }
 }
 
 void _fillView(ChessView& view) {
